@@ -1,0 +1,17 @@
+﻿  3DEngine.cpp
+C:\Users\nickj\OneDrive\Desktop\3DEngine\3DEngine\olcConsoleGameEngine.h(759,13): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+  (compiling source file '3DEngine.cpp')
+  
+C:\Users\nickj\OneDrive\Desktop\3DEngine\3DEngine\olcConsoleGameEngine.h(1099,31): warning C4267: 'return': conversion from 'size_t' to 'unsigned int', possible loss of data
+  (compiling source file '3DEngine.cpp')
+  
+C:\Users\nickj\OneDrive\Desktop\3DEngine\3DEngine\olcConsoleGameEngine.h(1196,4): warning C4312: 'type cast': conversion from 'DWORD' to 'olcConsoleGameEngine *' of greater size
+  (compiling source file '3DEngine.cpp')
+  
+C:\Users\nickj\OneDrive\Desktop\3DEngine\3DEngine\3DEngine.cpp(156,65): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+C:\Users\nickj\OneDrive\Desktop\3DEngine\3DEngine\3DEngine.cpp(156,39): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+C:\Users\nickj\OneDrive\Desktop\3DEngine\3DEngine\3DEngine.cpp(155,65): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+C:\Users\nickj\OneDrive\Desktop\3DEngine\3DEngine\3DEngine.cpp(155,39): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+C:\Users\nickj\OneDrive\Desktop\3DEngine\3DEngine\3DEngine.cpp(154,65): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+C:\Users\nickj\OneDrive\Desktop\3DEngine\3DEngine\3DEngine.cpp(154,39): warning C4244: 'argument': conversion from 'float' to 'int', possible loss of data
+  3DEngine.vcxproj -> C:\Users\nickj\OneDrive\Desktop\3DEngine\x64\Debug\3DEngine.exe
