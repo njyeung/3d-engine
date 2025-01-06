@@ -1,0 +1,5 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     '/Users/nickjyeung/Desktop/3d-engine/app'
+relocations:     []
+...
