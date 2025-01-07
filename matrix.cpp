@@ -18,12 +18,17 @@ Matrix::Matrix(float znear, float zfar, float fov, int screenwidth, int screenhe
     this->projectionMatrix.matrix[2][3] = 1;
     this->projectionMatrix.matrix[3][3] = 0;
 }
-void Matrix::setHeight(int screenheight) {
+mat4x4 Matrix::getProjectionMatrix() {
+    return projectionMatrix;
+}
+void Matrix::setHeight(int screenheight)
+{
     aspectRatio = (float)screenheight/(float)this->screenWidth;
 }
 void Matrix::setWidth(int screenwidth) {
     aspectRatio = (float)this->screenHeight/(float)screenwidth;
 }
+
 
 // STATIC METHODS
 void Matrix::MultiplyMatrixVector(vector3d &input, vector3d &output, mat4x4 m) {
@@ -54,4 +59,25 @@ void Matrix::TranslateTriangle(triangle &input, triangle &output, vector3d t) {
     TranslateVector(input.points[0], output.points[0], t);
     TranslateVector(input.points[1], output.points[1], t);
     TranslateVector(input.points[2], output.points[2], t);
+}
+mat4x4 Matrix::RotationMatrixX(float fTheta)
+{
+    mat4x4 matRotX;
+    matRotX.matrix[0][0] = 1;
+    matRotX.matrix[1][1] = cosf(fTheta);
+    matRotX.matrix[1][2] = sinf(fTheta);
+    matRotX.matrix[2][1] = -sinf(fTheta);
+    matRotX.matrix[2][2] = cosf(fTheta);
+    matRotX.matrix[3][3] = 1;
+    return matRotX;
+}
+mat4x4 Matrix::RotationMatrixZ(float fTheta) {
+    mat4x4 matRotZ;
+    matRotZ.matrix[0][0] = cosf(fTheta);
+    matRotZ.matrix[0][1] = sinf(fTheta);
+    matRotZ.matrix[1][0] = -sinf(fTheta);
+    matRotZ.matrix[1][1] = cosf(fTheta);
+    matRotZ.matrix[2][2] = 1;
+    matRotZ.matrix[3][3] = 1;
+    return matRotZ;
 }

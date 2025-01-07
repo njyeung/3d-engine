@@ -4,8 +4,8 @@
 #include <vector>
 #include "utils.h"
 #include "matrix.h"
+#include <algorithm>
 using namespace std;
-
 int main()
 {
     // Initialize variables
@@ -47,8 +47,11 @@ int main()
 
 	};
 
+    mesh ship; 
+    Utils::loadFromObj("VideoShip.obj", ship);
+
     // Initialize Projection matrix
-    Matrix m(0.1f, 1000.0f, 90.0f, screenWidth, screenHeight);
+    Matrix mat(0.1f, 1000.0f, 90.0f, screenWidth, screenHeight);
 
     /* Initialize the library */
     if (!glfwInit())
@@ -80,27 +83,14 @@ int main()
             glfwSetWindowTitle(window, text.c_str());
             fps = 0;
         }  
-        
 
         // Calculate rotation matrix
 
         // Rotation matrix Z
-        mat4x4 matRotZ;
-        matRotZ.matrix[0][0] = cosf(fTheta);
-        matRotZ.matrix[0][1] = sinf(fTheta);
-        matRotZ.matrix[1][0] = -sinf(fTheta);
-        matRotZ.matrix[1][1] = cosf(fTheta);
-        matRotZ.matrix[2][2] = 1;
-        matRotZ.matrix[3][3] = 1;
+        mat4x4 matRotZ = Matrix::RotationMatrixZ(fTheta);
 
         // Rotation X
-        mat4x4 matRotX;
-        matRotX.matrix[0][0] = 1;
-        matRotX.matrix[1][1] = cosf(fTheta * 0.5f);
-        matRotX.matrix[1][2] = sinf(fTheta * 0.5f);
-        matRotX.matrix[2][1] = -sinf(fTheta * 0.5f);
-        matRotX.matrix[2][2] = cosf(fTheta * 0.5f);
-        matRotX.matrix[3][3] = 1;
+        mat4x4 matRotX = Matrix::RotationMatrixX(fTheta * 0.5);
 
         /* Render here */
         
@@ -108,9 +98,11 @@ int main()
 
         glBegin(GL_TRIANGLES);
 
-        for(triangle tri : cube.triangles) {
+        // Holds the projected and translated triangles
+        vector<triangle> buffer;
 
-            triangle triProjected;
+        for(triangle tri : ship.triangles) {
+
             triangle triTranslated;
             triangle triRotatedZ;
             triangle triRotatedX;
@@ -120,16 +112,46 @@ int main()
             Matrix::MultiplyMatrixTriangle(triRotatedZ, triRotatedX, matRotX);
 
             // push cube back a bit
-            Matrix::TranslateTriangle(triRotatedX, triTranslated, {0.0f, 0.0f, 3.0f});
+            Matrix::TranslateTriangle(triRotatedX, triTranslated, {0.0f, 0.0f, 10.0f});
 
-            // // Projection matrix
-            Matrix::MultiplyMatrixTriangle(triTranslated, triProjected, m.projectionMatrix);
 
-            // Scale into view
-            // OPENGL DOES THIS BECAUSE ITS VIEW FRUSTUM IS FROM -1 to 1
+            // Queue triangle to render if it is visible from camera
+            vector3d vCamera = {0.0f,0.0f,0.0f};
+            vector3d linefromcameratotriangle = {triTranslated.points[0].x - vCamera.x, 
+            triTranslated.points[0].y - vCamera.y, triTranslated.points[0].z - vCamera.z};
+            // Find if it is visible by comparing the vector from camera to the surface normal vector of the trianlge
+            if(Utils::dotProduct(linefromcameratotriangle, Utils::surfaceNormal(triTranslated)) < 0.0f) {
+                
+                // Scale into view
+                // OPENGL DOES THIS BECAUSE ITS VIEW FRUSTUM IS FROM -1 to 1
+                
+                buffer.push_back(triTranslated);
+            }
+        }
 
+        // Sort triangles from back to front
+        // technically we should sort triprojected's z vals but whatever
+        sort(buffer.begin(), buffer.end(), [](triangle& t1, triangle& t2){
+            float z_bar1 = (t1.points[0].z + t1.points[1].z + t1.points[2].z) / 3;
+            float z_bar2 = (t2.points[0].z + t2.points[1].z + t2.points[2].z) / 3;
+            return z_bar1>z_bar2;
+        });
+
+        for(triangle triTranslated : buffer) {
+
+            triangle triProjected;
+            // Projection matrix 3D -> 2D
+            Matrix::MultiplyMatrixTriangle(triTranslated, triProjected, mat.getProjectionMatrix());
+
+            // Light triangle
+            vector3d light_direction = {0.0f,0.0f,1.0f}; // Light is coming from player
+            Utils::flip(light_direction, light_direction);
+            Utils::normalize(light_direction, light_direction);
+            float lit = Utils::dotProduct(Utils::surfaceNormal(triTranslated), light_direction); 
+            // We want the normal vector to face towards the light vector for full luminence
+            glColor3f(lit,lit,lit);
+            
             // Draw triangle
-            glColor3f(1.0f,1.0f,1.0f);
             glVertex2f(triProjected.points[0].x, triProjected.points[0].y);
             glVertex2f(triProjected.points[1].x, triProjected.points[1].y);
             glVertex2f(triProjected.points[2].x, triProjected.points[2].y);
