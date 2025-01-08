@@ -33,34 +33,77 @@ void Utils::loadFromObj(string filename, mesh& obj) {
 
     ifstream f(filename);
     if(!f.is_open()) {
-        std::cout << "FILE COULD NOT BE FOUND" << std::endl;
-        raise(9);
+        throw std::runtime_error("FILE COULD NOT BE FOUND: " + filename);
     }
 
     vector<vector3d> vectors;
 
     while(!f.eof()) {
-        char line[128];
-        char junk;
+        char rawLine[128];
 
-        f.getline(line, 128);
+        f.getline(rawLine, 128);
+        strstream line;
+        line << rawLine;
 
-        strstream s;
-        s << line;
+        std::string prefix;
+        line >> prefix;
 
-        if(line[0] == 'v') {
+        // prefix: v, f
+        // line:    x y z
+        //          v1 v2 v3
+
+        if(prefix == "v") {
             vector3d v;
-            s >> junk >> v.x >>v.y >> v.z;
+            line >> v.x >> v.y >> v.z;
             vectors.push_back(v);
         }
-        else if(line[0] == 'f') {
-            int f[3];
-            s >> junk >> f[0] >> f[1] >> f[2];
-            vector3d v1 = vectors[f[0]-1];
-            vector3d v2 = vectors[f[1]-1];
-            vector3d v3 = vectors[f[2]-1];
-            triangle newTri = {v1, v2, v3};
-            obj.triangles.push_back(newTri);
+        else if(prefix == "f") {
+            ///
+            vector<int> vertexIndicies;
+            vector<int> vertexNormals;
+
+            // Read each vertex definition into currVertex
+            // "v1//vn1" loop 1
+            // "v2//vn2" loop 2
+            // ...
+            std::string currVertex;
+            while(line >> currVertex) {
+                size_t firstSlash = currVertex.find('/');
+                size_t secondSlash = currVertex.find('/', firstSlash + 1);
+
+                if(firstSlash == std::string::npos) { // Format: v1 v2 v3
+                    vertexIndicies.push_back(stoi(currVertex));
+                }
+                else if(secondSlash == firstSlash +1) { // Format: v1//vn1 v2//vn2 v3//vn3
+                    std::string vIndex = currVertex.substr(0, firstSlash);
+
+                    // NOT BEING USED RN
+                    std::string nIndex = currVertex.substr(secondSlash + 1); 
+
+                    vertexIndicies.push_back(stoi(vIndex));
+                }
+                else { // Format: v1/vt1/vn1 v2/vt2/vn2 v3/vt3/vn3
+                    std::string vIndex = currVertex.substr(0, firstSlash);
+
+                    // NOT BEING USED RN
+                    std::string normalIndex = currVertex.substr(secondSlash + 1);
+                    std::string tIndex = currVertex.substr(firstSlash + 1, secondSlash - firstSlash - 1);
+
+                    vertexIndicies.push_back(stoi(vIndex));
+                }
+            }
+
+            if(vertexIndicies.size() != 3) {
+                throw std::runtime_error("Faces must contain only 3 vertices");
+            }
+
+            triangle tri = {
+                vectors[vertexIndicies[0]-1],
+                vectors[vertexIndicies[1]-1],
+                vectors[vertexIndicies[2]-1]
+            };
+
+            obj.triangles.push_back(tri);
         }
         else {
             // continue to next line
