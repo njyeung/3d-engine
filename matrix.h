@@ -19,12 +19,34 @@ public:
     void setHeight(int screenheight);
     void setWidth(int screenWidth);
     
-
+    /*
+        Makes a translation matrix
+    */
+    static mat4x4 TranslationMatrix(float x, float y, float z);
+    /*
+        Makes a rotation X matrix
+    */
     static mat4x4 RotationMatrixX(float fTheta);
+    /*
+        Makes a rotation Y matrix
+    */
+    static mat4x4 RotationMatrixY(float fTheta);
+    /*
+        Makes a rotation Z matrix
+    */
     static mat4x4 RotationMatrixZ(float fTheta);
-    static void MultiplyMatrixVector(vector3d& input, vector3d& output, mat4x4 m);
-    static void MultiplyMatrixTriangle(triangle& input, triangle& output, mat4x4 m);
-    static void TranslateVector(vector3d& input, vector3d& output, vector3d t);
-    static void TranslateTriangle(triangle& input, triangle& output, vector3d t);
+    /*
+        Multiplies a vector by a matrix
+    */
+    static vector3d MultiplyVectorMatrix(vector3d input, mat4x4 m);
+    /*
+        Multiplies each vector of the triangle by the matrix
+    */
+    static triangle MultiplyTriangleMatrix(triangle input, mat4x4 m);
+    /*
+        Multiplies 2 matrices
+    */
+    static mat4x4 MultiplyMatrixMatrix(mat4x4 a, mat4x4 b);
+    
 };
 #endif

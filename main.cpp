@@ -4,10 +4,30 @@
 #include <vector>
 #include "utils.h"
 #include "matrix.h"
+#include "objhandler.h"
 #include <algorithm>
 using namespace std;
-int main()
-{
+
+static vector3d cam = { 0.0f, 0.0f, -10.0f};
+
+void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods) {
+    if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, GLFW_TRUE);
+    if (key == GLFW_KEY_W)
+        cam.z += 0.5f;
+    if (key == GLFW_KEY_S)
+        cam.z -= 0.5f;
+    if (key == GLFW_KEY_A)
+        cam.x -= 0.5f;
+    if (key == GLFW_KEY_D)
+        cam.x += 0.5f;
+    if (key == GLFW_KEY_SPACE)
+        cam.y += 0.5f;
+    if (key == GLFW_KEY_C)
+        cam.y -= 0.5f;
+}
+
+int main() {
     // Initialize variables
     double prev = 0;
     double curr;
@@ -17,41 +37,11 @@ int main()
     int screenWidth = 640;
     int screenHeight = 480;
 
-    mesh cube;
-
-    cube.triangles = {
-
-		// SOUTH
-		{ 0.0f, 0.0f, 0.0f,    0.0f, 1.0f, 0.0f,    1.0f, 1.0f, 0.0f },
-		{ 0.0f, 0.0f, 0.0f,    1.0f, 1.0f, 0.0f,    1.0f, 0.0f, 0.0f },
-
-		// EAST                                                      
-		{ 1.0f, 0.0f, 0.0f,    1.0f, 1.0f, 0.0f,    1.0f, 1.0f, 1.0f },
-		{ 1.0f, 0.0f, 0.0f,    1.0f, 1.0f, 1.0f,    1.0f, 0.0f, 1.0f },
-
-		// NORTH                                                     
-		{ 1.0f, 0.0f, 1.0f,    1.0f, 1.0f, 1.0f,    0.0f, 1.0f, 1.0f },
-		{ 1.0f, 0.0f, 1.0f,    0.0f, 1.0f, 1.0f,    0.0f, 0.0f, 1.0f },
-
-		// WEST                                                      
-		{ 0.0f, 0.0f, 1.0f,    0.0f, 1.0f, 1.0f,    0.0f, 1.0f, 0.0f },
-		{ 0.0f, 0.0f, 1.0f,    0.0f, 1.0f, 0.0f,    0.0f, 0.0f, 0.0f },
-
-		// TOP                                                       
-		{ 0.0f, 1.0f, 0.0f,    0.0f, 1.0f, 1.0f,    1.0f, 1.0f, 1.0f },
-		{ 0.0f, 1.0f, 0.0f,    1.0f, 1.0f, 1.0f,    1.0f, 1.0f, 0.0f },
-
-		// BOTTOM                                                    
-		{ 1.0f, 0.0f, 1.0f,    0.0f, 0.0f, 1.0f,    0.0f, 0.0f, 0.0f },
-		{ 1.0f, 0.0f, 1.0f,    0.0f, 0.0f, 0.0f,    1.0f, 0.0f, 0.0f },
-
-	};
-
-    mesh ship; 
-    Utils::loadFromObj("VideoShip.obj", ship);
+    mesh test = OBJHandler::loadFromObj("VideoShip.obj");
+    // Utils::loadFromObj("VideoShip.obj", test);
 
     // Initialize Projection matrix
-    Matrix mat(0.1f, 1000.0f, 90.0f, screenWidth, screenHeight);
+    Matrix mat(1.0f, 1000.0f, 90.0f, screenWidth, screenHeight);
 
     /* Initialize the library */
     if (!glfwInit())
@@ -65,8 +55,11 @@ int main()
         return -1;
     }
 
+    glfwSetKeyCallback(window, key_callback);
+
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
+    
 
     /* Loop until the user closes the window */
 
@@ -84,12 +77,8 @@ int main()
             fps = 0;
         }  
 
-        // Calculate rotation matrix
-
-        // Rotation matrix Z
+        // Calculate rotation matrices
         mat4x4 matRotZ = Matrix::RotationMatrixZ(fTheta);
-
-        // Rotation X
         mat4x4 matRotX = Matrix::RotationMatrixX(fTheta * 0.5);
 
         /* Render here */
@@ -101,26 +90,20 @@ int main()
         // Holds the projected and translated triangles
         vector<triangle> buffer;
 
-        for(triangle tri : ship.triangles) {
-
-            triangle triTranslated;
-            triangle triRotatedZ;
-            triangle triRotatedX;
-
+        for(triangle tri : test.triangles) {
             // Rotate Cube based on fTheta
-            Matrix::MultiplyMatrixTriangle(tri, triRotatedZ, matRotZ);
-            Matrix::MultiplyMatrixTriangle(triRotatedZ, triRotatedX, matRotX);
+            triangle triRotatedZ = Matrix::MultiplyTriangleMatrix(tri, matRotZ);
+            triangle triRotatedX = Matrix::MultiplyTriangleMatrix(triRotatedZ, matRotX);
 
-            // push cube back a bit
-            Matrix::TranslateTriangle(triRotatedX, triTranslated, {0.0f, 0.0f, 10.0f});
-
+            // translate cube based on camera position
+            triangle triTranslated = Matrix::MultiplyTriangleMatrix(triRotatedX, Matrix::TranslationMatrix(-cam.x,-cam.y,-cam.z));
 
             // Queue triangle to render if it is visible from camera
-            vector3d vCamera = {0.0f,0.0f,0.0f};
-            vector3d linefromcameratotriangle = {triTranslated.points[0].x - vCamera.x, 
-            triTranslated.points[0].y - vCamera.y, triTranslated.points[0].z - vCamera.z};
+            vector3d vCameraRay = Utils::vectorSubtract(triTranslated.points[0], cam);
+            vector3d surfaceNormal = Utils::surfaceNormal(triTranslated);
+            
             // Find if it is visible by comparing the vector from camera to the surface normal vector of the trianlge
-            if(Utils::dotProduct(linefromcameratotriangle, Utils::surfaceNormal(triTranslated)) < 0.0f) {
+            if(Utils::dotProduct(vCameraRay, surfaceNormal) < 0.0f) { 
                 
                 // Scale into view
                 // OPENGL DOES THIS BECAUSE ITS VIEW FRUSTUM IS FROM -1 to 1
@@ -138,19 +121,28 @@ int main()
         });
 
         for(triangle triTranslated : buffer) {
-
-            triangle triProjected;
+            
             // Projection matrix 3D -> 2D
-            Matrix::MultiplyMatrixTriangle(triTranslated, triProjected, mat.getProjectionMatrix());
+            triangle triProjected = Matrix::MultiplyTriangleMatrix(triTranslated, mat.getProjectionMatrix());
+            // Divide each property by w after projection
+            triProjected = { 
+                Utils::vectorScale(triProjected.points[0], 1/triProjected.points[0].w), 
+                Utils::vectorScale(triProjected.points[1], 1/triProjected.points[1].w),
+                Utils::vectorScale(triProjected.points[2], 1/triProjected.points[2].w)
+            };
 
             // Light triangle
             vector3d light_direction = {0.0f,0.0f,1.0f}; // Light is coming from player
-            Utils::flip(light_direction, light_direction);
-            Utils::normalize(light_direction, light_direction);
-            float lit = Utils::dotProduct(Utils::surfaceNormal(triTranslated), light_direction); 
+            light_direction = Utils::vectorFlip(light_direction);
+            light_direction = Utils::normalize(light_direction);
+            // Flip and normalize the vector
+
+            vector3d surfaceNormal = Utils::surfaceNormal(triTranslated);
+            float lit = Utils::dotProduct(surfaceNormal, light_direction);
+
             // We want the normal vector to face towards the light vector for full luminence
             glColor3f(lit,lit,lit);
-            
+
             // Draw triangle
             glVertex2f(triProjected.points[0].x, triProjected.points[0].y);
             glVertex2f(triProjected.points[1].x, triProjected.points[1].y);

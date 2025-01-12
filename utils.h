@@ -4,11 +4,14 @@
 #include <vector>
 #include <iostream>
 using namespace std;
-
+/*
+    Additional w attribute is set to 1 by default
+*/
 struct vector3d {
-    float x;
-    float y;
-    float z;
+    float x = 0;
+    float y = 0;
+    float z = 0;
+    float w = 1;
 };
 struct triangle {
     vector3d points[3];
@@ -22,12 +25,13 @@ struct mat4x4 {
 class Utils {
 public:
     static float dotProduct(vector3d a, vector3d b);
-    static void crossProduct(vector3d a, vector3d b, vector3d& res);
+    static vector3d crossProduct(vector3d a, vector3d b);
     static float magnitude(vector3d a);
-    static void normalize(vector3d a, vector3d& res);
-    static void flip(vector3d a, vector3d& res);
-    static void loadFromObj(string filename, mesh& obj);
-    static void line(vector3d a, vector3d b, vector3d& res);
+    static vector3d normalize(vector3d a);
+    static vector3d vectorFlip(vector3d a);
+    static vector3d vectorSubtract(vector3d a, vector3d);
+    static vector3d vectorAdd(vector3d a, vector3d b);
+    static vector3d vectorScale(vector3d a, float b);
     static vector3d surfaceNormal(triangle a);
 };
 #endif

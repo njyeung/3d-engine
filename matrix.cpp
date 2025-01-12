@@ -31,37 +31,49 @@ void Matrix::setWidth(int screenwidth) {
 
 
 // STATIC METHODS
-void Matrix::MultiplyMatrixVector(vector3d &input, vector3d &output, mat4x4 m) {
-    // assume the 4th value in vector is 1
-    output.x = input.x * m.matrix[0][0] + input.y * m.matrix[1][0] + input.z * m.matrix[2][0] + m.matrix[3][0] * 1;
-    output.y = input.x * m.matrix[0][1] + input.y * m.matrix[1][1] + input.z * m.matrix[2][1] + m.matrix[3][1] * 1;
-    output.z = input.x * m.matrix[0][2] + input.y * m.matrix[1][2] + input.z * m.matrix[2][2] + m.matrix[3][2] * 1;
+vector3d Matrix::MultiplyVectorMatrix(vector3d input, mat4x4 m) {
+    vector3d res;
 
-    float w = input.x * m.matrix[0][3] + input.y * m.matrix[1][3] + input.z * m.matrix[2][3] + m.matrix[3][3] * 1;
+    res.x = input.x * m.matrix[0][0] + input.y * m.matrix[1][0] + input.z * m.matrix[2][0] + m.matrix[3][0] * 1;
+    res.y = input.x * m.matrix[0][1] + input.y * m.matrix[1][1] + input.z * m.matrix[2][1] + m.matrix[3][1] * 1;
+    res.z = input.x * m.matrix[0][2] + input.y * m.matrix[1][2] + input.z * m.matrix[2][2] + m.matrix[3][2] * 1;
+    res.w = input.x * m.matrix[0][3] + input.y * m.matrix[1][3] + input.z * m.matrix[2][3] + m.matrix[3][3] * 1;
 
-    if (w != 0.0f) {
-        output.x = output.x / w;
-        output.y = output.y / w;
-        output.z = output.z / w;
+    return res;
+}
+triangle Matrix::MultiplyTriangleMatrix(triangle input, mat4x4 m) {
+    triangle res;
+    
+    res.points[0] = MultiplyVectorMatrix(input.points[0], m);
+    res.points[1] = MultiplyVectorMatrix(input.points[1], m);
+    res.points[2] = MultiplyVectorMatrix(input.points[2], m);
+    
+    return res;
+}
+mat4x4 Matrix::MultiplyMatrixMatrix(mat4x4 a, mat4x4 b) {
+    mat4x4 res;
+    for(int col = 0; col<4; col++) {
+        for(int row = 0; row<4; row++) {
+            res.matrix[row][col] = a.matrix[row][0] * b.matrix[0][col] 
+            + a.matrix[row][1] * b.matrix[1][col] 
+            + a.matrix[row][2] * b.matrix[2][col] 
+            + a.matrix[row][3] * b.matrix[3][col];
+        }
     }
+    return res;
 }
-void Matrix::MultiplyMatrixTriangle(triangle& input, triangle& output, mat4x4 m) {
-    MultiplyMatrixVector(input.points[0], output.points[0], m);
-    MultiplyMatrixVector(input.points[1], output.points[1], m);
-    MultiplyMatrixVector(input.points[2], output.points[2], m);
+mat4x4 Matrix::TranslationMatrix(float x, float y, float z) {
+    mat4x4 res;
+    res.matrix[0][0] = 1.0f;
+    res.matrix[1][1] = 1.0f;
+    res.matrix[2][2] = 1.0f;
+    res.matrix[3][3] = 1.0f;
+    res.matrix[3][0] = x;
+    res.matrix[3][1] = y;
+    res.matrix[3][2] = z;
+    return res;
 }
-void Matrix::TranslateVector(vector3d& input, vector3d& output, vector3d t) {
-    output.x = input.x + t.x;
-    output.y = input.y + t.y;
-    output.z = input.z + t.z;
-}
-void Matrix::TranslateTriangle(triangle &input, triangle &output, vector3d t) {
-    TranslateVector(input.points[0], output.points[0], t);
-    TranslateVector(input.points[1], output.points[1], t);
-    TranslateVector(input.points[2], output.points[2], t);
-}
-mat4x4 Matrix::RotationMatrixX(float fTheta)
-{
+mat4x4 Matrix::RotationMatrixX(float fTheta) {
     mat4x4 matRotX;
     matRotX.matrix[0][0] = 1;
     matRotX.matrix[1][1] = cosf(fTheta);
