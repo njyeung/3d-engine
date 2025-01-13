@@ -47,6 +47,7 @@ public:
         Multiplies 2 matrices
     */
     static mat4x4 MultiplyMatrixMatrix(mat4x4 a, mat4x4 b);
-    
+    static mat4x4 PointAtMatrix(vector3d pos, vector3d target, vector3d up);
+    static mat4x4 QuickInverseMatrix(mat4x4 m);
 };
 #endif

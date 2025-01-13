@@ -83,7 +83,18 @@ mat4x4 Matrix::RotationMatrixX(float fTheta) {
     matRotX.matrix[3][3] = 1;
     return matRotX;
 }
-mat4x4 Matrix::RotationMatrixZ(float fTheta) {
+mat4x4 Matrix::RotationMatrixY(float fTheta) {
+    mat4x4 matRotY;
+    matRotY.matrix[0][0] = cosf(fTheta);
+    matRotY.matrix[0][2] = sinf(fTheta);
+    matRotY.matrix[2][0] = -sinf(fTheta);
+    matRotY.matrix[1][1] = 1.0f;
+    matRotY.matrix[2][2] = cosf(fTheta);
+    matRotY.matrix[3][3] = 1.0f;
+    return matRotY;
+}
+mat4x4 Matrix::RotationMatrixZ(float fTheta)
+{
     mat4x4 matRotZ;
     matRotZ.matrix[0][0] = cosf(fTheta);
     matRotZ.matrix[0][1] = sinf(fTheta);
@@ -92,4 +103,35 @@ mat4x4 Matrix::RotationMatrixZ(float fTheta) {
     matRotZ.matrix[2][2] = 1;
     matRotZ.matrix[3][3] = 1;
     return matRotZ;
+}
+mat4x4 Matrix::PointAtMatrix(vector3d pos, vector3d target, vector3d up) {
+    // Calculate new forward
+    vector3d newForward = Utils::normalize(Utils::vectorSubtract(target, pos));
+    
+    // Calculate new up
+    vector3d a = Utils::vectorScale(newForward, Utils::dotProduct(up, newForward));
+    vector3d newUp = Utils::normalize(Utils::vectorSubtract(up, a));
+
+    vector3d newRight = Utils::crossProduct(newUp, newForward);
+
+    mat4x4 m;
+    m.matrix[0][0] = newRight.x;    m.matrix[0][1] = newRight.y;    m.matrix[0][2] = newRight.z;    m.matrix[0][3] = 0;
+    m.matrix[1][0] = newUp.x;       m.matrix[1][1] = newUp.y;       m.matrix[1][2] = newUp.z;       m.matrix[1][3] = 0;
+    m.matrix[2][0] = newForward.x;  m.matrix[2][1] = newForward.y;  m.matrix[2][2] = newForward.z;  m.matrix[2][3] = 0;
+    m.matrix[3][0] = pos.x;         m.matrix[3][1] = pos.y;         m.matrix[3][2] = pos.z;         m.matrix[3][3] = 1;
+
+    return m;
+}
+
+mat4x4 Matrix::QuickInverseMatrix(mat4x4 m) // Only for Rotation/Translation Matrices
+{
+    mat4x4 matrix;
+    matrix.matrix[0][0] = m.matrix[0][0]; matrix.matrix[0][1] = m.matrix[1][0]; matrix.matrix[0][2] = m.matrix[2][0]; matrix.matrix[0][3] = 0.0f;
+    matrix.matrix[1][0] = matrix.matrix[0][1]; matrix.matrix[1][1] = m.matrix[1][1]; matrix.matrix[1][2] = m.matrix[2][1]; matrix.matrix[1][3] = 0.0f;
+    matrix.matrix[2][0] = m.matrix[0][2]; matrix.matrix[2][1] = m.matrix[1][2]; matrix.matrix[2][2] = m.matrix[2][2]; matrix.matrix[2][3] = 0.0f;
+    matrix.matrix[3][0] = -(m.matrix[3][0] * matrix.matrix[0][0] + m.matrix[3][1] * matrix.matrix[1][0] + m.matrix[3][2] * matrix.matrix[2][0]);
+    matrix.matrix[3][1] = -(m.matrix[3][0] * matrix.matrix[0][1] + m.matrix[3][1] * matrix.matrix[1][1] + m.matrix[3][2] * matrix.matrix[2][1]);
+    matrix.matrix[3][2] = -(m.matrix[3][0] * matrix.matrix[0][2] + m.matrix[3][1] * matrix.matrix[1][2] + m.matrix[3][2] * matrix.matrix[2][2]);
+    matrix.matrix[3][3] = 1.0f;
+    return matrix;
 }

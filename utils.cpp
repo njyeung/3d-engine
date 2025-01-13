@@ -64,3 +64,9 @@ vector3d Utils::vectorScale(vector3d a, float b) {
     res.z = a.z * b;
     return res;
 }
+// vector3d Utils::vectorMultiply(vector3d a, vector3d b) {
+//     vector3d res;
+//     res.x = a.x * b.x;
+//     res.y = a.y * b.y;
+//     res.z = a.z * b.z;
+// }
