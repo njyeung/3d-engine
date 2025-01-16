@@ -137,3 +137,32 @@ mat4x4 Matrix::QuickInverseMatrix(mat4x4 m) // Only for Rotation/Translation Mat
     matrix.matrix[3][3] = 1.0f;
     return matrix;
 }
+
+mat4x4 Matrix::RotationMatrixAxis(float theta, vector3d axis) {
+    // Ensure the axis vector is normalized
+    axis = Utils::normalize(axis);
+    float x = axis.x;
+    float y = axis.y;
+    float z = axis.z;
+    float cosTheta = cos(theta);
+    float sinTheta = sin(theta);
+    float oneMinusCosTheta = 1.0f - cosTheta;
+
+    mat4x4 rotationMatrix = { 0 };
+
+    rotationMatrix.matrix[0][0] = cosTheta + x * x * oneMinusCosTheta;
+    rotationMatrix.matrix[0][1] = x * y * oneMinusCosTheta - z * sinTheta;
+    rotationMatrix.matrix[0][2] = x * z * oneMinusCosTheta + y * sinTheta;
+
+    rotationMatrix.matrix[1][0] = y * x * oneMinusCosTheta + z * sinTheta;
+    rotationMatrix.matrix[1][1] = cosTheta + y * y * oneMinusCosTheta;
+    rotationMatrix.matrix[1][2] = y * z * oneMinusCosTheta - x * sinTheta;
+
+    rotationMatrix.matrix[2][0] = z * x * oneMinusCosTheta - y * sinTheta;
+    rotationMatrix.matrix[2][1] = z * y * oneMinusCosTheta + x * sinTheta;
+    rotationMatrix.matrix[2][2] = cosTheta + z * z * oneMinusCosTheta;
+    
+    rotationMatrix.matrix[3][3] = 1.0f;
+
+    return rotationMatrix;
+}

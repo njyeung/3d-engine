@@ -32,7 +32,7 @@ int main() {
     int screenWidth = 840;
     int screenHeight = 680;
 
-    test = OBJHandler::loadFromObj("cow.obj");
+    test = OBJHandler::loadFromObj("mountains.obj");
     // Utils::loadFromObj("VideoShip.obj", test);
 
     // Initialize Projection matrix
@@ -54,7 +54,17 @@ int main() {
 
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
-    
+
+    glEnable(GL_TEXTURE_2D);
+    GLuint texture;
+    glGenTextures(1, &texture);
+    glBindTexture(GL_TEXTURE_2D, texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    GLvoid *data = {0};
+    // glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,100,200,0,GL_RGBA,GL_UNSIGNED_BYTE, data);
 
     /* Loop until the user closes the window */
 
@@ -105,15 +115,29 @@ int main() {
         
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glBegin(GL_TRIANGLES);
+        // glBegin(GL_TRIANGLES);
 
         vector3d vUp = { 0.0f, 1.0f, 0.0f };
         vector3d vTarget = { 0.0f, 0.0f, 1.0f };
+
         mat4x4 matCameraRotY = Matrix::RotationMatrixY(fYaw);
-        mat4x4 matCameraRotX = Matrix::RotationMatrixX(fPitch);
-        mat4x4 matCameraRot = Matrix::MultiplyMatrixMatrix(matCameraRotX, matCameraRotY);
+        vLookDir = Matrix::MultiplyVectorMatrix(vTarget, matCameraRotY);
         
-        vLookDir = Matrix::MultiplyVectorMatrix(vTarget, matCameraRot);
+        // // Recalculate local X-axis
+        // vector3d vRight = Utils::crossProduct(vUp, vLookDir);
+        // vRight = Utils::normalize(vRight);
+        
+        // // Apply pitch around local axis
+        // mat4x4 matCameraRotX = Matrix::RotationMatrixAxis(fPitch, vRight);
+        
+        // vLookDir = Matrix::MultiplyVectorMatrix(vLookDir, matCameraRotX);
+
+        // std::cout<<vLookDir.x << ", " <<vLookDir.y << " ," <<vLookDir.z<<std::endl;
+
+        // // Recalculate the up vector to ensure orthogonality
+        // vUp = Utils::crossProduct(vLookDir, vRight);
+        // vUp = Utils::normalize(vUp);
+
         vTarget = Utils::vectorAdd(vCamera, vLookDir);
         mat4x4 matCamera = Matrix::PointAtMatrix(vCamera, vTarget, vUp);
         // Invert camera matrix to transform everything else around the camera
@@ -150,7 +174,7 @@ int main() {
         for(triangle triTranslated : buffer) {
             
             triangle triView = Matrix::MultiplyTriangleMatrix(triTranslated, matView);
-
+            
             triangle clipped[2];
             int numClippedTriangles = Utils::clipTriangleAgainstPlane({0.0f,0.0f,mat.getFNear()}, {0.0f,0.0f,1.0f}, triView, clipped[0], clipped[1]);
             // std::cout<<numClippedTriangles<<std::endl;
@@ -182,8 +206,10 @@ int main() {
 
                 // We want the normal vector to face towards the light vector for full luminence
                 // Added colors for clipping visualization
+                
+
                 if(i == 0) {
-                    glColor3f(1.0f,lit,lit);
+                    glColor3f(lit,lit,lit);
                 }
                 if(i == 1) {
                     glColor3f(lit, 1.0f, lit);
@@ -191,15 +217,17 @@ int main() {
                 if(i == 2) {
                     glColor3f(lit, lit, 1.0f);
                 }
-
+                glBegin(GL_TRIANGLE_FAN);
                 // Draw triangle
                 glVertex2f(triProjected.points[0].x, triProjected.points[0].y);
                 glVertex2f(triProjected.points[1].x, triProjected.points[1].y);
                 glVertex2f(triProjected.points[2].x, triProjected.points[2].y);
+                // glTexCoord2f(1.0f, 1.0f);
+                glEnd();
             }
         }
 
-        glEnd();
+        // glEnd();
 
         // /* Swap front and back buffers */
         glfwSwapBuffers(window);
