@@ -32,7 +32,7 @@ int main() {
     int screenWidth = 840;
     int screenHeight = 680;
 
-    test = OBJHandler::loadFromObj("axis.obj");
+    test = OBJHandler::loadFromObj("cow.obj");
     // Utils::loadFromObj("VideoShip.obj", test);
 
     // Initialize Projection matrix
@@ -91,13 +91,13 @@ int main() {
             vCamera = Utils::vectorSubtract(vCamera, vLeft);
         
         if(glfwGetKey(window, GLFW_KEY_LEFT))
-            fYaw += 1.0f * timeElapsed;
+            fYaw += 2.0f * timeElapsed;
         if(glfwGetKey(window, GLFW_KEY_RIGHT))
-            fYaw -= 1.0f * timeElapsed;
+            fYaw -= 2.0f * timeElapsed;
         if(glfwGetKey(window, GLFW_KEY_UP))
-            fPitch -= 1.0f * timeElapsed;
+            fPitch -= 2.0f * timeElapsed;
         if(glfwGetKey(window, GLFW_KEY_DOWN))
-            fPitch += 1.0f * timeElapsed;
+            fPitch += 2.0f * timeElapsed;
 
         
 
@@ -181,13 +181,14 @@ int main() {
                 float lit = Utils::dotProduct(surfaceNormal, light_direction);
 
                 // We want the normal vector to face towards the light vector for full luminence
+                // Added colors for clipping visualization
                 if(i == 0) {
                     glColor3f(1.0f,lit,lit);
                 }
                 if(i == 1) {
                     glColor3f(lit, 1.0f, lit);
                 }
-                if(i == 3) {
+                if(i == 2) {
                     glColor3f(lit, lit, 1.0f);
                 }
 
