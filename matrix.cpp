@@ -21,8 +21,10 @@ Matrix::Matrix(float znear, float zfar, float fov, int screenwidth, int screenhe
 mat4x4 Matrix::getProjectionMatrix() {
     return projectionMatrix;
 }
-void Matrix::setHeight(int screenheight)
-{
+float Matrix::getFNear() {
+    return zNear;
+}
+void Matrix::setHeight(int screenheight) {
     aspectRatio = (float)screenheight/(float)this->screenWidth;
 }
 void Matrix::setWidth(int screenwidth) {

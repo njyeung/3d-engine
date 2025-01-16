@@ -33,5 +33,17 @@ public:
     static vector3d vectorAdd(vector3d a, vector3d b);
     static vector3d vectorScale(vector3d a, float b);
     static vector3d surfaceNormal(triangle a);
+    /*
+        Returns the point where a line intersects with a plane
+    */
+    static vector3d lineIntersectsPlane(vector3d plane, vector3d planeNormal, vector3d lineStart, vector3d lineEnd);
+    /*
+        Returns the number of triangles generated from clipping a triangle against a plane, and populates the output references accordingly 
+    */
+    static int clipTriangleAgainstPlane(vector3d plane, vector3d planeNormal, triangle& input, triangle& output1, triangle& output2);
+    /*
+        Get the closest distance between a point and a plane
+    */
+    static float distance(vector3d plane, vector3d planeNormal, vector3d point);
 };
 #endif

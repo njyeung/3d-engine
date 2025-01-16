@@ -32,7 +32,7 @@ int main() {
     int screenWidth = 840;
     int screenHeight = 680;
 
-    test = OBJHandler::loadFromObj("teapot.obj");
+    test = OBJHandler::loadFromObj("axis.obj");
     // Utils::loadFromObj("VideoShip.obj", test);
 
     // Initialize Projection matrix
@@ -134,6 +134,7 @@ int main() {
                 // Scale into view
                 // OPENGL DOES THIS BECAUSE ITS VIEW FRUSTUM IS FROM -1 to 1
                 
+
                 buffer.push_back(tri);
             }
         }
@@ -150,31 +151,51 @@ int main() {
             
             triangle triView = Matrix::MultiplyTriangleMatrix(triTranslated, matView);
 
-            // Projection matrix 3D -> 2D
-            triangle triProjected = Matrix::MultiplyTriangleMatrix(triView, mat.getProjectionMatrix());
-            // Divide each property by w after projection
-            triProjected = { 
-                Utils::vectorScale(triProjected.points[0], 1/triProjected.points[0].w), 
-                Utils::vectorScale(triProjected.points[1], 1/triProjected.points[1].w),
-                Utils::vectorScale(triProjected.points[2], 1/triProjected.points[2].w)
-            };
+            triangle clipped[2];
+            int numClippedTriangles = Utils::clipTriangleAgainstPlane({0.0f,0.0f,mat.getFNear()}, {0.0f,0.0f,1.0f}, triView, clipped[0], clipped[1]);
+            // std::cout<<numClippedTriangles<<std::endl;
 
-            // Light triangle
-            vector3d light_direction = {0.0f,0.0f,1.0f}; // Light is coming from 0,0,0
-            light_direction = Utils::vectorFlip(light_direction);
-            light_direction = Utils::normalize(light_direction);
-            // Flip and normalize the vector
+            for(int i = 0; i<numClippedTriangles; i++) {
+                // Projection matrix 3D -> 2D
+                triangle triProjected = Matrix::MultiplyTriangleMatrix(clipped[i], mat.getProjectionMatrix());
+            
+                // This fix is for opengl's right handed coordinate system
+                // triProjected.points[0].x = 1-triProjected.points[0].x;
+                // triProjected.points[1].x = 1-triProjected.points[1].x;
+                // triProjected.points[2].x = 1-triProjected.points[2].x;
 
-            vector3d surfaceNormal = Utils::surfaceNormal(triTranslated);
-            float lit = Utils::dotProduct(surfaceNormal, light_direction);
+                // Divide each property by w after projection
+                triProjected = { 
+                    Utils::vectorScale(triProjected.points[0], 1/triProjected.points[0].w), 
+                    Utils::vectorScale(triProjected.points[1], 1/triProjected.points[1].w),
+                    Utils::vectorScale(triProjected.points[2], 1/triProjected.points[2].w)
+                };
 
-            // We want the normal vector to face towards the light vector for full luminence
-            glColor3f(1.0f,lit,lit);
+                // Light triangle
+                vector3d light_direction = {0.0f,0.0f,1.0f}; // Light is coming from 0,0,0
+                light_direction = Utils::vectorFlip(light_direction);
+                light_direction = Utils::normalize(light_direction);
+                // Flip and normalize the vector
 
-            // Draw triangle
-            glVertex2f(triProjected.points[0].x, triProjected.points[0].y);
-            glVertex2f(triProjected.points[1].x, triProjected.points[1].y);
-            glVertex2f(triProjected.points[2].x, triProjected.points[2].y);
+                vector3d surfaceNormal = Utils::surfaceNormal(triTranslated);
+                float lit = Utils::dotProduct(surfaceNormal, light_direction);
+
+                // We want the normal vector to face towards the light vector for full luminence
+                if(i == 0) {
+                    glColor3f(1.0f,lit,lit);
+                }
+                if(i == 1) {
+                    glColor3f(lit, 1.0f, lit);
+                }
+                if(i == 3) {
+                    glColor3f(lit, lit, 1.0f);
+                }
+
+                // Draw triangle
+                glVertex2f(triProjected.points[0].x, triProjected.points[0].y);
+                glVertex2f(triProjected.points[1].x, triProjected.points[1].y);
+                glVertex2f(triProjected.points[2].x, triProjected.points[2].y);
+            }
         }
 
         glEnd();

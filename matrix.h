@@ -16,6 +16,7 @@ private:
 public:
     Matrix(float znear, float zfar, float pov, int screenwidth, int screenheight);
     mat4x4 getProjectionMatrix();
+    float getFNear();
     void setHeight(int screenheight);
     void setWidth(int screenWidth);
     
