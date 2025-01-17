@@ -37,6 +37,12 @@ int main() {
 
     // Initialize Projection matrix
     Matrix mat(1.0f, 1000.0f, 90.0f, screenWidth, screenHeight);
+    
+    // World lighting
+    vector3d light_direction = {0.0f,0.0f,1.0f}; // Light is coming from 0,0,0
+    light_direction = Utils::vectorFlip(light_direction);
+    light_direction = Utils::normalize(light_direction);
+    // Flip and normalize the vector
 
     /* Initialize the library */
     if (!glfwInit())
@@ -109,7 +115,6 @@ int main() {
         if(glfwGetKey(window, GLFW_KEY_DOWN))
             fPitch += 2.0f * timeElapsed;
 
-        
 
         /* Render here */
         
@@ -155,11 +160,14 @@ int main() {
             // Find if it is visible by comparing the vector from camera to the surface normal vector of the trianlge
             if(Utils::dotProduct(vCameraRay, surfaceNormal) < 0.0f) { 
                 
-                // Scale into view
-                // OPENGL DOES THIS BECAUSE ITS VIEW FRUSTUM IS FROM -1 to 1
-                
+                // Light triangle
+                vector3d surfaceNormal = Utils::surfaceNormal(tri);
+                tri.color = Utils::dotProduct(surfaceNormal, light_direction);
 
-                buffer.push_back(tri);
+                // Apply translations and rotations based on camera location
+                triangle triView = Matrix::MultiplyTriangleMatrix(tri, matView);
+
+                buffer.push_back(triView);
             }
         }
 
@@ -171,13 +179,12 @@ int main() {
             return z_bar1>z_bar2;
         });
 
-        for(triangle triTranslated : buffer) {
-            
-            triangle triView = Matrix::MultiplyTriangleMatrix(triTranslated, matView);
+        for(triangle tri : buffer) {
             
             triangle clipped[2];
-            int numClippedTriangles = Utils::clipTriangleAgainstPlane({0.0f,0.0f,mat.getFNear()}, {0.0f,0.0f,1.0f}, triView, clipped[0], clipped[1]);
-            // std::cout<<numClippedTriangles<<std::endl;
+            clipped[0].color = tri.color;
+            clipped[1].color = tri.color;
+            int numClippedTriangles = Utils::clipTriangleAgainstPlane({0.0f,0.0f,mat.getFNear()}, {0.0f,0.0f,1.0f}, tri, clipped[0], clipped[1]);
 
             for(int i = 0; i<numClippedTriangles; i++) {
                 // Projection matrix 3D -> 2D
@@ -189,34 +196,12 @@ int main() {
                 // triProjected.points[2].x = 1-triProjected.points[2].x;
 
                 // Divide each property by w after projection
-                triProjected = { 
-                    Utils::vectorScale(triProjected.points[0], 1/triProjected.points[0].w), 
-                    Utils::vectorScale(triProjected.points[1], 1/triProjected.points[1].w),
-                    Utils::vectorScale(triProjected.points[2], 1/triProjected.points[2].w)
-                };
-
-                // Light triangle
-                vector3d light_direction = {0.0f,0.0f,1.0f}; // Light is coming from 0,0,0
-                light_direction = Utils::vectorFlip(light_direction);
-                light_direction = Utils::normalize(light_direction);
-                // Flip and normalize the vector
-
-                vector3d surfaceNormal = Utils::surfaceNormal(triTranslated);
-                float lit = Utils::dotProduct(surfaceNormal, light_direction);
-
-                // We want the normal vector to face towards the light vector for full luminence
-                // Added colors for clipping visualization
+                triProjected.points[0] = Utils::vectorScale(triProjected.points[0], 1/triProjected.points[0].w);
+                triProjected.points[1] = Utils::vectorScale(triProjected.points[1], 1/triProjected.points[1].w);
+                triProjected.points[2] = Utils::vectorScale(triProjected.points[2], 1/triProjected.points[2].w);
                 
-
-                if(i == 0) {
-                    glColor3f(lit,lit,lit);
-                }
-                if(i == 1) {
-                    glColor3f(lit, 1.0f, lit);
-                }
-                if(i == 2) {
-                    glColor3f(lit, lit, 1.0f);
-                }
+            
+                glColor3f(triProjected.color, triProjected.color, triProjected.color);
                 glBegin(GL_TRIANGLE_FAN);
                 // Draw triangle
                 glVertex2f(triProjected.points[0].x, triProjected.points[0].y);
