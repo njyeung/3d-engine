@@ -3,6 +3,7 @@
 #include <vector>
 #include <iostream>
 #include "utils.h"
+#include "matrix.h"
 using namespace std;
 
 class OBJHandler {
@@ -15,5 +16,9 @@ public:
         appends the obj file to the mesh reference passed in.
     */
     static void appendFromObj(string filename, mesh& obj);
+    /*
+        returns a cube
+    */
+    static mesh loadCube();
 };  
 #endif

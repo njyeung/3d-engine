@@ -6,6 +6,8 @@
 #include "matrix.h"
 #include "objhandler.h"
 #include <algorithm>
+ #define STB_IMAGE_IMPLEMENTATION
+#include "include/stb/stb_image.h"
 using namespace std;
 
 mesh test;
@@ -32,8 +34,8 @@ int main() {
     int screenWidth = 840;
     int screenHeight = 680;
 
-    test = OBJHandler::loadFromObj("mountains.obj");
-    // Utils::loadFromObj("VideoShip.obj", test);
+    test = OBJHandler::loadCube();
+    // test = OBJHandler::loadFromObj("mountains.obj");
 
     // Initialize Projection matrix
     Matrix mat(1.0f, 1000.0f, 90.0f, screenWidth, screenHeight);
@@ -60,6 +62,9 @@ int main() {
 
     /* Make the window's context current */
     glfwMakeContextCurrent(window);
+    
+    int widthImg, heightImg, numColCh;
+    unsigned char* bytes = stbi_load("pop_cat.png", &widthImg, &heightImg, &numColCh, 0);
 
     glEnable(GL_TEXTURE_2D);
     GLuint texture;
@@ -69,8 +74,7 @@ int main() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    GLvoid *data = {0};
-    // glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,100,200,0,GL_RGBA,GL_UNSIGNED_BYTE, data);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, widthImg, heightImg, 0,GL_RGBA,GL_UNSIGNED_BYTE, bytes);
 
     /* Loop until the user closes the window */
 
@@ -120,8 +124,6 @@ int main() {
         
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // glBegin(GL_TRIANGLES);
-
         vector3d vUp = { 0.0f, 1.0f, 0.0f };
         vector3d vTarget = { 0.0f, 0.0f, 1.0f };
 
@@ -152,7 +154,7 @@ int main() {
         vector<triangle> buffer;
 
         for(triangle tri : test.triangles) {
-
+            
             // Queue triangle to render if it is visible from camera
             vector3d vCameraRay = Utils::vectorSubtract(tri.points[0], vCamera);
             vector3d surfaceNormal = Utils::surfaceNormal(tri);
@@ -187,6 +189,8 @@ int main() {
             int numClippedTriangles = Utils::clipTriangleAgainstPlane({0.0f,0.0f,mat.getFNear()}, {0.0f,0.0f,1.0f}, tri, clipped[0], clipped[1]);
 
             for(int i = 0; i<numClippedTriangles; i++) {
+                
+
                 // Projection matrix 3D -> 2D
                 triangle triProjected = Matrix::MultiplyTriangleMatrix(clipped[i], mat.getProjectionMatrix());
             
@@ -200,14 +204,21 @@ int main() {
                 triProjected.points[1] = Utils::vectorScale(triProjected.points[1], 1/triProjected.points[1].w);
                 triProjected.points[2] = Utils::vectorScale(triProjected.points[2], 1/triProjected.points[2].w);
                 
-            
-                glColor3f(triProjected.color, triProjected.color, triProjected.color);
+
+                float color = max(triProjected.color, 0.1f);
+                glColor3f(color, color,  color);
                 glBegin(GL_TRIANGLE_FAN);
+                
                 // Draw triangle
+                glTexCoord2f(triProjected.texture[0].u, triProjected.texture[0].v);
                 glVertex2f(triProjected.points[0].x, triProjected.points[0].y);
+                
+                glTexCoord2f(triProjected.texture[1].u, triProjected.texture[1].v);
                 glVertex2f(triProjected.points[1].x, triProjected.points[1].y);
+                
+                glTexCoord2f(triProjected.texture[2].u, triProjected.texture[2].v);
                 glVertex2f(triProjected.points[2].x, triProjected.points[2].y);
-                // glTexCoord2f(1.0f, 1.0f);
+                
                 glEnd();
             }
         }

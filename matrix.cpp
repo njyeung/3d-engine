@@ -49,6 +49,9 @@ triangle Matrix::MultiplyTriangleMatrix(triangle input, mat4x4 m) {
     res.points[0] = MultiplyVectorMatrix(input.points[0], m);
     res.points[1] = MultiplyVectorMatrix(input.points[1], m);
     res.points[2] = MultiplyVectorMatrix(input.points[2], m);
+    res.texture[0] = input.texture[0];
+    res.texture[1] = input.texture[1];
+    res.texture[2] = input.texture[2];
     res.color = input.color;
     
     return res;

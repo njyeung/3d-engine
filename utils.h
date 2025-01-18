@@ -14,13 +14,13 @@ struct vector3d {
     float w = 1;
 };
 struct vector2d {
-    float x = 0;
-    float y = 0;
+    float u = 0;
+    float v = 0;
     float w = 1;
 };
 struct triangle {
     vector3d points[3];
-    vector2d texture[2];
+    vector2d texture[3];
     float color;
 };
 struct mesh {
