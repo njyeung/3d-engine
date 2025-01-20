@@ -139,8 +139,6 @@ int main() {
         
         // vLookDir = Matrix::MultiplyVectorMatrix(vLookDir, matCameraRotX);
 
-        // std::cout<<vLookDir.x << ", " <<vLookDir.y << " ," <<vLookDir.z<<std::endl;
-
         // // Recalculate the up vector to ensure orthogonality
         // vUp = Utils::crossProduct(vLookDir, vRight);
         // vUp = Utils::normalize(vUp);
@@ -190,10 +188,9 @@ int main() {
 
             for(int i = 0; i<numClippedTriangles; i++) {
                 
-
                 // Projection matrix 3D -> 2D
                 triangle triProjected = Matrix::MultiplyTriangleMatrix(clipped[i], mat.getProjectionMatrix());
-            
+                
                 // This fix is for opengl's right handed coordinate system
                 // triProjected.points[0].x = 1-triProjected.points[0].x;
                 // triProjected.points[1].x = 1-triProjected.points[1].x;
@@ -205,7 +202,7 @@ int main() {
                 triProjected.points[2] = Utils::vectorScale(triProjected.points[2], 1/triProjected.points[2].w);
                 
 
-                float color = max(triProjected.color, 0.1f);
+                float color = max(triProjected.color, 0.3f);
                 glColor3f(color, color,  color);
                 glBegin(GL_TRIANGLE_FAN);
                 

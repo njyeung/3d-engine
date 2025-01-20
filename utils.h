@@ -39,11 +39,12 @@ public:
     static vector3d vectorSubtract(vector3d a, vector3d);
     static vector3d vectorAdd(vector3d a, vector3d b);
     static vector3d vectorScale(vector3d a, float b);
+    static vector2d vectorScale(vector2d a, float b);
     static vector3d surfaceNormal(triangle a);
     /*
         Returns the point where a line intersects with a plane
     */
-    static vector3d lineIntersectsPlane(vector3d plane, vector3d planeNormal, vector3d lineStart, vector3d lineEnd);
+    static vector3d lineIntersectsPlane(vector3d plane, vector3d planeNormal, vector3d lineStart, vector3d lineEnd, float &t);
     /*
         Returns the number of triangles generated from clipping a triangle against a plane, and populates the output references accordingly 
     */
