@@ -34,7 +34,7 @@ int main() {
     int screenWidth = 840;
     int screenHeight = 680;
 
-    test = OBJHandler::loadCube();
+    test = OBJHandler::loadFromObj("Artisans Hub.obj");
     // test = OBJHandler::loadFromObj("mountains.obj");
 
     // Initialize Projection matrix
@@ -64,7 +64,7 @@ int main() {
     glfwMakeContextCurrent(window);
     
     int widthImg, heightImg, numColCh;
-    unsigned char* bytes = stbi_load("pop_cat.png", &widthImg, &heightImg, &numColCh, 0);
+    unsigned char* bytes = stbi_load("High.png", &widthImg, &heightImg, &numColCh, 0);
 
     glEnable(GL_TEXTURE_2D);
     GLuint texture;
@@ -74,7 +74,7 @@ int main() {
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, widthImg, heightImg, 0,GL_RGBA,GL_UNSIGNED_BYTE, bytes);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, widthImg, heightImg, 0,GL_RGB,GL_UNSIGNED_BYTE, bytes);
 
     /* Loop until the user closes the window */
 
@@ -203,7 +203,7 @@ int main() {
                 
 
                 float color = max(triProjected.color, 0.3f);
-                glColor3f(color, color,  color);
+                glColor3f(1.0f, 1.0f,  1.0f);
                 glBegin(GL_TRIANGLE_FAN);
                 
                 // Draw triangle

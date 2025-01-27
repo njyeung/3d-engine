@@ -12,6 +12,7 @@ void OBJHandler::appendFromObj(string filename, mesh & obj) {
     }
 
     vector<vector3d> vectors;
+    vector<vector2d> textures;
 
     while(!f.eof()) {
         char rawLine[128];
@@ -32,10 +33,16 @@ void OBJHandler::appendFromObj(string filename, mesh & obj) {
             line >> v.x >> v.y >> v.z;
             vectors.push_back(v);
         }
+        else if(prefix == "vt") {
+            vector2d tex;
+            line >> tex.u >> tex.v;
+            tex.v = 1.0f-tex.v;
+            textures.push_back(tex);
+        }
         else if(prefix == "f") {
-            ///
+
             vector<int> vertexIndicies;
-            vector<int> vertexNormals;
+            vector<int> textureIndicies;
 
             // Read each vertex definition into currVertex
             // "v1//vn1" loop 1
@@ -63,22 +70,53 @@ void OBJHandler::appendFromObj(string filename, mesh & obj) {
                     // NOT BEING USED RN
                     std::string normalIndex = currVertex.substr(secondSlash + 1);
                     std::string tIndex = currVertex.substr(firstSlash + 1, secondSlash - firstSlash - 1);
-
+                    textureIndicies.push_back(stoi(tIndex));
                     vertexIndicies.push_back(stoi(vIndex));
                 }
             }
 
-            if(vertexIndicies.size() != 3) {
-                throw std::runtime_error("Faces must contain only 3 vertices");
-            }
-
-            triangle tri = {
+            if(vertexIndicies.size() == 3) {
+                triangle tri = {
                 vectors[vertexIndicies[0]-1],
                 vectors[vertexIndicies[1]-1],
                 vectors[vertexIndicies[2]-1]
-            };
+                };
+                if(textureIndicies.empty() == false) {
+                    tri.texture[0] = textures[textureIndicies[0]-1];
+                    tri.texture[1] = textures[textureIndicies[1]-1];
+                    tri.texture[2] = textures[textureIndicies[2]-1];
+                }
 
-            obj.triangles.push_back(tri);
+                obj.triangles.push_back(tri);
+
+            }
+            else { // Quick fix for 4 vertices
+                
+                triangle tri1 = {
+                    vectors[vertexIndicies[0]-1],
+                    vectors[vertexIndicies[1]-1],
+                    vectors[vertexIndicies[2]-1]
+                };
+                triangle tri2 = {
+                    vectors[vertexIndicies[0]-1],
+                    vectors[vertexIndicies[2]-1],
+                    vectors[vertexIndicies[3]-1]
+                };
+
+                if(textureIndicies.empty() == false) {
+                    tri1.texture[0] = textures[textureIndicies[0]-1];
+                    tri1.texture[1] = textures[textureIndicies[1]-1];
+                    tri1.texture[2] = textures[textureIndicies[2]-1];
+
+                    tri2.texture[0] = textures[textureIndicies[0]-1];
+                    tri2.texture[1] = textures[textureIndicies[2]-1];
+                    tri2.texture[2] = textures[textureIndicies[3]-1];
+                }
+
+                obj.triangles.push_back(tri1);
+                obj.triangles.push_back(tri2);
+            }
+            
         }
         else {
             // continue to next line
